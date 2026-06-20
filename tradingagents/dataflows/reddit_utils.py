@@ -1,5 +1,6 @@
 
 import os
+
 import praw
 
 ticker_to_asset = {
@@ -15,7 +16,7 @@ ticker_to_asset = {
 }
 
 def fetch_posts_from_reddit(
-    symbol: str, subreddit_name: str, 
+    symbol: str, subreddit_name: str,
     sort: str = "hot", limit: int = 25
 ):
     """

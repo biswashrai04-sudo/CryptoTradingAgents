@@ -1,7 +1,7 @@
 import functools
-import time
-import json
+
 from tradingagents.i18n import get_prompts
+
 
 def create_trader(llm, memory):
     def trader_node(state, name):

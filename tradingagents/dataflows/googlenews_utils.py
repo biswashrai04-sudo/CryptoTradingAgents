@@ -1,16 +1,16 @@
-import json
+import random
+import time
+from datetime import datetime
+
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
-import time
-import random
 from loguru import logger
 from tenacity import (
     retry,
-    stop_after_attempt,
-    wait_exponential,
     retry_if_exception_type,
     retry_if_result,
+    stop_after_attempt,
+    wait_exponential,
 )
 
 
@@ -20,7 +20,10 @@ def is_rate_limited(response):
 
 
 @retry(
-    retry=(retry_if_result(is_rate_limited) | retry_if_exception_type(requests.exceptions.Timeout)),
+    retry=(
+        retry_if_result(is_rate_limited)
+        | retry_if_exception_type(requests.exceptions.Timeout)
+    ),
     wait=wait_exponential(multiplier=1, min=4, max=60),
     stop=stop_after_attempt(5),
 )
@@ -57,7 +60,9 @@ def getNewsData(query, start_date, end_date, max_pages=5):
         )
     }
 
-    logger.debug(f"Starting Google News scrape for '{query}' ({start_date} – {end_date}, max_pages={max_pages})...")
+    logger.debug(
+        f"Starting Google News scrape for '{query}' ({start_date} - {end_date}, max_pages={max_pages})..."
+    )
     news_results = []
     page = 0
     while page < max_pages:
@@ -74,7 +79,9 @@ def getNewsData(query, start_date, end_date, max_pages=5):
             results_on_page = soup.select("div.SoaBEf")
 
             if not results_on_page:
-                logger.debug(f"Google News page {page + 1}: no results found, stopping pagination")
+                logger.debug(
+                    f"Google News page {page + 1}: no results found, stopping pagination"
+                )
                 break  # No more results found
 
             for el in results_on_page:
@@ -98,7 +105,9 @@ def getNewsData(query, start_date, end_date, max_pages=5):
                     # If one of the fields is not found, skip this result
                     continue
 
-            logger.debug(f"Google News page {page + 1}: scraped {len(results_on_page)} results (total: {len(news_results)})")
+            logger.debug(
+                f"Google News page {page + 1}: scraped {len(results_on_page)} results (total: {len(news_results)})"
+            )
 
             # Check for the "Next" link (pagination)
             next_link = soup.find("a", id="pnnext")
@@ -109,11 +118,15 @@ def getNewsData(query, start_date, end_date, max_pages=5):
             page += 1
 
         except requests.exceptions.Timeout:
-            logger.warning(f"Google News scrape timed out for '{query}' on page {page + 1}, returning partial results")
+            logger.warning(
+                f"Google News scrape timed out for '{query}' on page {page + 1}, returning partial results"
+            )
             break
         except Exception as e:
             logger.warning(f"Google News scrape failed after multiple retries: {e}")
             break
 
-    logger.debug(f"Google News scrape complete for '{query}': {len(news_results)} results across {page + 1} pages")
+    logger.debug(
+        f"Google News scrape complete for '{query}': {len(news_results)} results across {page + 1} pages"
+    )
     return news_results

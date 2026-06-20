@@ -10,6 +10,9 @@ eval_data/
 .env
 .env.local
 
+# Streamlit secrets (local — template is committed)
+.streamlit/secrets.toml
+
 */reports/*
 tests/
 logs/

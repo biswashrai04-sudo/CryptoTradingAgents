@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Debug CLI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "cli.main",
+            "args": ["AAPL", "2025-01-01", "--save"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "autoReload": { "enable": true }
+        },
+        {
+            "name": "Python: Debug Streamlit App",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": ["run", "app.py"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "autoReload": { "enable": true }
+        },
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

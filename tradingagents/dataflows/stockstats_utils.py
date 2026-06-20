@@ -1,11 +1,14 @@
+import os
+from typing import Annotated
+
 import pandas as pd
 import yfinance as yf
 from stockstats import wrap
-from typing import Annotated
-import os
+from typing_extensions import deprecated
+
 from .config import get_config
 
-from typing_extensions import deprecated
+
 @deprecated("Utilities only for stocks are deprecated.")
 class StockstatsUtils:
     @staticmethod
@@ -72,6 +75,10 @@ class StockstatsUtils:
                     progress=False,
                     auto_adjust=True,
                 )
+                if raw_data is None:
+                    raise Exception(
+                        "Stockstats fail: Yahoo Finance download returned no data!"
+                    )
                 data = raw_data.reset_index()
                 data.to_csv(data_file, index=False)
 

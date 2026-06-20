@@ -97,7 +97,7 @@ Additionally, develop a detailed investment plan for the trader. This should inc
 Your Recommendation: A decisive stance supported by the most convincing arguments.
 Rationale: An explanation of why these arguments lead to your conclusion.
 Strategic Actions: Concrete steps for implementing the recommendation.
-Take into account your past mistakes on similar situations. Use these insights to refine your decision-making and ensure you are learning and improving. Present your analysis conversationally, as if speaking naturally, without special formatting. 
+Take into account your past mistakes on similar situations. Use these insights to refine your decision-making and ensure you are learning and improving. Present your analysis conversationally, as if speaking naturally, without special formatting.
 In addition, please provide **suggested entry price, support level, resistance level, take-profit price, and stop-loss price** based on the user's investment preferences and the analysts' reports.
 
 **Analysis from External Experts:**
@@ -128,7 +128,7 @@ Deliverables:
 **Analysis from External Experts:**
 {external_reports}
 
-**Analysts Debate History:**  
+**Analysts Debate History:**
 {history}
 
 Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes."""
@@ -254,7 +254,7 @@ Your goal is to deliver detailed insights into investment decisions and highligh
      - Technical indicators.
      - Technical signals.
      - Price movement analysis.
-     - Overall market data analysis 
+     - Overall market data analysis
      - News analysis.
      - Social media and sentiment analysis.
      - Fundamental data analysis.

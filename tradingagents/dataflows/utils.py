@@ -1,22 +1,25 @@
-import os
-import json
-import pandas as pd
-from datetime import date, timedelta, datetime
+from datetime import datetime, timedelta
 from typing import Annotated
+
+import pandas as pd
 
 SavePathType = Annotated[str, "File path to save data. If None, data is not saved."]
 
+
 class Singleton(type):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
+
 
 def save_output(data: pd.DataFrame, tag: str, save_path: SavePathType = None) -> None:
     if save_path:
         data.to_csv(save_path)
         print(f"{tag} saved to {save_path}")
+
 
 def ts_to_time(timestamp: int) -> str:
     """

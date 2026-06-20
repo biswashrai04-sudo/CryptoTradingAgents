@@ -1,8 +1,6 @@
-from langchain_core.messages import AIMessage
-import time
-import json
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.i18n import get_prompts
+
 
 def create_bear_researcher(llm, memory):
     def bear_node(state) -> dict:

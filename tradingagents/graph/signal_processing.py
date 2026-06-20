@@ -1,7 +1,9 @@
 # TradingAgents/graph/signal_processing.py
 
 from langchain_openai import ChatOpenAI
+
 from tradingagents.i18n import get_prompts
+
 
 class SignalProcessor:
     """Processes trading signals to extract actionable decisions."""

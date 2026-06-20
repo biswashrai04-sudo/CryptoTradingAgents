@@ -1,7 +1,9 @@
-from functools import reduce
 import importlib
+from functools import reduce
 from typing import overload
+
 from tradingagents.default_config import DEFAULT_CONFIG
+
 
 def get_value(dictionary: dict, *keys, default=None):
     """
@@ -30,7 +32,7 @@ def get_lang(*keys, default="") -> str | dict | None:
         if not keys:
             return LANG
         return get_value(LANG, *keys, default=default)
-    
+
 def get_prompts(*keys, default="") -> str | None:
     lang_code = DEFAULT_CONFIG.get("language", "zh")
     try:

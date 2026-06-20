@@ -1,16 +1,20 @@
 
 import os
+
 import requests
 from loguru import logger
+
+
+
 
 def fetch_news_from_coindesk(tickers=[], count=10) -> list[dict[str, str]]:
     """
     Fetches the latest news from Coindesk for a given ticker.
-    
+
     Args:
         tickers (list): The ticker symbols for which to fetch news.
         count (int): The number of news articles to fetch. Default is 10.
-        
+
     Returns:
         list: A list of news articles, each represented as a dictionary.
     """
@@ -23,7 +27,7 @@ def fetch_news_from_coindesk(tickers=[], count=10) -> list[dict[str, str]]:
     try:
         response = requests.get(url, timeout=30)
         logger.debug(f"CoinDesk news fetch completed (status {response.status_code})")
-        
+
         if response.status_code == 200:
             data = response.json()
             if "Data" in data and isinstance(data["Data"], list):

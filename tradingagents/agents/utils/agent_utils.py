@@ -1,33 +1,25 @@
-from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMessage
-from typing import List
 from typing import Annotated
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import RemoveMessage
+
+from langchain_core.messages import HumanMessage, RemoveMessage
 from langchain_core.tools import tool
-from datetime import date, timedelta, datetime
-import functools
-import pandas as pd
-import os
-from dateutil.relativedelta import relativedelta
-from langchain_openai import ChatOpenAI
+
 import tradingagents.dataflows.interface as interface
 from tradingagents.default_config import DEFAULT_CONFIG
-from langchain_core.messages import HumanMessage
 
 
 def create_msg_delete():
     def delete_messages(state):
         """Clear messages and add placeholder for Anthropic compatibility"""
         messages = state["messages"]
-        
+
         # Remove all messages
         removal_operations = [RemoveMessage(id=m.id) for m in messages]
-        
+
         # Add a minimal placeholder message
         placeholder = HumanMessage(content="Continue")
-        
-        return {"messages": removal_operations + [placeholder]}
-    
+
+        return {"messages": [*removal_operations, placeholder]}
+
     return delete_messages
 
 
@@ -62,12 +54,12 @@ class Toolkit:
         """
         blockbeats_news_result = interface.get_blockbeats_news(count)
         return blockbeats_news_result
-    
+
     @staticmethod
     @tool
     def get_coindesk_news(
         tickers: Annotated[
-            List[str],
+            list[str],
             "List of tickers to get news for, e.g. ['BTC', 'ETH']",
         ] = [],
         count: Annotated[int, "Number of news articles to retrieve, default is 10"] = 10,
@@ -82,7 +74,7 @@ class Toolkit:
         """
         coindesk_news_result = interface.get_coindesk_news(tickers, count)
         return coindesk_news_result
-    
+
     @staticmethod
     @tool
     def get_coinstats_news() -> str:
@@ -93,7 +85,7 @@ class Toolkit:
         """
         coinstats_news_result = interface.get_coinstats_news()
         return coinstats_news_result
-    
+
     @staticmethod
     @tool
     def get_binance_ohlcv(
@@ -113,7 +105,7 @@ class Toolkit:
         """
         binance_ohlcv_result = interface.get_binance_ohlcv(symbol, interval)
         return binance_ohlcv_result
-    
+
     @staticmethod
     @tool
     def get_coinstats_btc_dominance() -> str:
@@ -124,7 +116,7 @@ class Toolkit:
         """
         btc_dominance_result = interface.get_coinstats_btc_dominance()
         return btc_dominance_result
-    
+
     @staticmethod
     @tool
     def get_binance_data(
@@ -144,7 +136,7 @@ class Toolkit:
         """
         binance_data_result = interface.get_binance_data(symbol, interval)
         return binance_data_result
-    
+
     @staticmethod
     @tool
     def get_fear_and_greed_index() -> str:
@@ -154,7 +146,7 @@ class Toolkit:
             str: A formatted string containing the current crypto market Fear and Greed Index.
         """
         return interface.get_fear_and_greed_index()
-    
+
     @staticmethod
     @tool
     def get_taapi_bulk_indicators(

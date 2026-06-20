@@ -5,13 +5,16 @@
 # Disabling the "parameter must be a supertype of its class" check project-wide
 # for this file since it's a deliberate meta-programming design choice.
 
-import yfinance as yf
-from typing import Annotated, Callable, Any, Optional
-from pandas import DataFrame
-import pandas as pd
+from collections.abc import Callable
 from functools import wraps
+from typing import Annotated, Any
 
-from .utils import save_output, SavePathType, decorate_all_methods
+import pandas as pd
+import yfinance as yf
+from pandas import DataFrame
+from typing_extensions import deprecated
+
+from .utils import decorate_all_methods
 
 
 def init_ticker(func: Callable) -> Callable:
@@ -24,12 +27,10 @@ def init_ticker(func: Callable) -> Callable:
 
     return wrapper
 
-from typing_extensions import deprecated
 
 @deprecated("Utilities only for stocks are deprecated.")
 @decorate_all_methods(init_ticker)
 class YFinanceUtils:
-
     def get_stock_data(
         symbol: Annotated[str, "ticker symbol"],
         start_date: Annotated[
@@ -38,7 +39,7 @@ class YFinanceUtils:
         end_date: Annotated[
             str, "end date for retrieving stock price data, YYYY-mm-dd"
         ],
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
     ) -> DataFrame:
         """retrieve stock price data for designated ticker symbol"""
         ticker: yf.Ticker = symbol  # type: ignore[assignment]
@@ -59,7 +60,7 @@ class YFinanceUtils:
 
     def get_asset_info(
         symbol: Annotated[str, "ticker symbol"],
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
     ) -> DataFrame:
         """Fetches and returns asset information as a DataFrame."""
         ticker: yf.Ticker = symbol  # type: ignore[assignment]
@@ -79,7 +80,7 @@ class YFinanceUtils:
 
     def get_stock_dividends(
         symbol: Annotated[str, "ticker symbol"],
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
     ) -> DataFrame:
         """Fetches and returns the latest dividends data as a DataFrame."""
         ticker: yf.Ticker = symbol  # type: ignore[assignment]
@@ -119,8 +120,10 @@ class YFinanceUtils:
         """Fetches the latest analyst recommendations and returns the most common recommendation and its count."""
         ticker: yf.Ticker = symbol  # type: ignore[assignment]
         recommendations = ticker.recommendations
-        if recommendations.empty:
+        if not isinstance(recommendations, pd.DataFrame):
             return None, 0  # No recommendations available
+        if recommendations.empty:
+            return None, 0
 
         # Assuming 'period' column exists and needs to be excluded
         row_0 = recommendations.iloc[0, 1:]  # Exclude 'period' column if necessary

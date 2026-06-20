@@ -1,8 +1,6 @@
-from langchain_core.messages import AIMessage
-import time
-import json
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.i18n import get_prompts
+
 
 def create_bull_researcher(llm, memory):
     def bull_node(state) -> dict:
@@ -36,7 +34,7 @@ def create_bull_researcher(llm, memory):
             + "\n\n" \
             + get_prompts("investment_preferences", "system_message") \
             .replace("{investment_preferences}", investment_preferences)
-        
+
         response = llm.invoke(prompt)
 
         argument = f"Bull Analyst: {response.content}"

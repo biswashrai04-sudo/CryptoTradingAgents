@@ -1,0 +1,27 @@
+# ============================================================================
+# Streamlit Configuration
+# This file is read by both local and Streamlit Community Cloud deployments.
+# Community Cloud: Must exist at .streamlit/config.toml in the repo root.
+# ============================================================================
+
+[theme]
+# Dark theme optimized for trading dashboards
+base="dark"
+primaryColor="#F0B90B"       # Binance gold
+backgroundColor="#0E1117"
+textColor="#FAFAFA"
+font="sans serif"
+
+[server]
+# Community Cloud overrides these, but they serve as defaults for local dev
+maxUploadSize=50
+
+# Disable file watcher on Cloud (reduces memory usage)
+# fileWatcherType="none"  # Uncomment if Cloud deploy fails due to inotify limits
+
+[browser]
+gatherUsageStats=false
+
+[logger]
+level="info"
+messageFormat="%(asctime)s %(levelname)s [%(name)s] %(message)s"

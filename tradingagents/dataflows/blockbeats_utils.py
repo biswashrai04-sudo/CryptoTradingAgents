@@ -2,6 +2,7 @@
 import requests
 from loguru import logger
 
+
 def fetch_news_from_blockbeats(count = 10):
     url = f"https://api.theblockbeats.news/v1/open-api/open-flash?page=1&size={count}&type=push&lang=cn"
     logger.debug("Starting BlockBeats news fetch...")

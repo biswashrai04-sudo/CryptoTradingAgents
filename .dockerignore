@@ -1,0 +1,51 @@
+# Python / Virtual Environment
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+env/
+*.egg
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Env files (keep examples, exclude real ones)
+.env
+.env.local
+.env.production
+!cli/.env.example
+!mailsender/.env.example
+
+# Reports / Output
+tradingagents/reports/
+*/reports/*
+
+# Git
+.git/
+.gitattributes
+
+# Tests
+tests/
+eval_results/
+eval_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+
+# Other
+*.csv
+src/
+nul
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore

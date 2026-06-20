@@ -1,8 +1,11 @@
 # TradingAgents/graph/reflection.py
 
-from typing import Dict, Any
+from typing import Any
+
 from langchain_openai import ChatOpenAI
+
 from tradingagents.i18n import get_prompts
+
 
 class Reflector:
     """Handles reflection on decisions and updating memory."""
@@ -16,7 +19,7 @@ class Reflector:
         """Get the system prompt for reflection."""
         return get_prompts("reflection", "system_message")
 
-    def _extract_current_situation(self, current_state: Dict[str, Any]) -> str:
+    def _extract_current_situation(self, current_state: dict[str, Any]) -> str:
         """Extract the current market situation from the state."""
         curr_market_report = current_state["market_report"]
         curr_sentiment_report = current_state["sentiment_report"]

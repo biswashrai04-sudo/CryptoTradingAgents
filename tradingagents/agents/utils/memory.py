@@ -1,4 +1,5 @@
 import os
+
 import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
@@ -28,7 +29,7 @@ class FinancialSituationMemory:
 
     def get_embedding(self, text):
         """Get OpenAI embedding for a text"""
-        
+
         response = self.client.embeddings.create(
             model=self.embedding, input=text
         )
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 
     # Example query
     current_situation = """
-    Market showing increased volatility in tech sector, with institutional investors 
+    Market showing increased volatility in tech sector, with institutional investors
     reducing positions and rising interest rates affecting growth stock valuations
     """
 
@@ -123,4 +124,4 @@ if __name__ == "__main__":
             print(f"Recommendation: {rec['recommendation']}")
 
     except Exception as e:
-        print(f"Error during recommendation: {str(e)}")
+        print(f"Error during recommendation: {e!s}")

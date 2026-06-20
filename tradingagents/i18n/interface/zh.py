@@ -69,4 +69,4 @@ LANG = {
     "depth_medium": "中等 - 适中研究，适量辩论与策略讨论",
     "depth_deep": "深度 - 全面研究，深入辩论与策略讨论",
     "depth_instruction": "\n- 使用方向键选择\n- 回车确认",
-} 
+}

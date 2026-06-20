@@ -1,8 +1,6 @@
-from langchain_core.messages import AIMessage
-import time
-import json
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.i18n import get_prompts
+
 
 def create_safe_debator(llm):
     def safe_node(state) -> dict:
@@ -34,7 +32,7 @@ def create_safe_debator(llm):
             + "\n\n" \
             + get_prompts("investment_preferences", "system_message") \
             .replace("{investment_preferences}", investment_preferences)
-        
+
         response = llm.invoke(prompt)
 
         argument = f"Safe Analyst: {response.content}"

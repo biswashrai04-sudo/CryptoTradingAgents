@@ -1,10 +1,7 @@
-from typing import Annotated, Sequence
-from datetime import date, timedelta, datetime
-from typing_extensions import TypedDict, Optional
-from langchain_openai import ChatOpenAI
-from tradingagents.agents import *
-from langgraph.prebuilt import ToolNode
-from langgraph.graph import END, StateGraph, START, MessagesState
+from typing import Annotated
+
+from langgraph.graph import MessagesState
+from typing_extensions import TypedDict
 
 
 # Researcher team state
@@ -55,7 +52,9 @@ class AgentState(MessagesState):
     sender: Annotated[str, "Agent that sent this message"]
 
     # research step
-    external_reports: Annotated[list[str], "Reports from the External Expert Researcher"]
+    external_reports: Annotated[
+        list[str], "Reports from the External Expert Researcher"
+    ]
     market_report: Annotated[str, "Report from the Market Analyst"]
     sentiment_report: Annotated[str, "Report from the Social Media Analyst"]
     news_report: Annotated[

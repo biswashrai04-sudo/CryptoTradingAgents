@@ -1,7 +1,9 @@
 # TradingAgents/graph/propagation.py
 
-from typing import Dict, Any, cast
+from typing import Any, cast
+
 from langchain_core.messages import HumanMessage
+
 from tradingagents.agents.utils.agent_states import (
     AgentState,
     InvestDebateState,
@@ -56,7 +58,7 @@ class Propagator:
             "external_reports": external_reports,
         })
 
-    def get_graph_args(self) -> Dict[str, Any]:
+    def get_graph_args(self) -> dict[str, Any]:
         """Get arguments for the graph invocation."""
         return {
             "stream_mode": "values",

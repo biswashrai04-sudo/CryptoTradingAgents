@@ -1,15 +1,18 @@
 
 import os
 from datetime import datetime, timedelta
+
 import requests
 from loguru import logger
+
 from .utils import Singleton
+
 
 def fetch_ta_from_taapi(symbol: str, indicator: str, interval: str = "15m", **params):
     """
     Fetch technical analysis data from TAAPI.io for a given symbol and indicator.
     :note: For free plan, the rate limit is 1 request per 15 seconds.
-    
+
     :param symbol: The trading pair symbol (e.g., 'BTC/USDT').
     :param indicator: The technical indicator to fetch (e.g., 'rsi', 'macd').
     :param interval: The time interval for the data (default is '15m').
@@ -77,12 +80,12 @@ class TAAPIBulkUtils(metaclass=Singleton):
                 **({k.replace(f"{indicator}_", ""): v for k, v in kwargs.items() if k.startswith(f"{indicator}_")})
             } for indicator in self.indicators
         ]
-        
+
     def __fetch_bulk_ta_from_taapi(self):
         if self.bulk_data is not None and self.last_fetch_time is not None and \
             datetime.now() - self.last_fetch_time < timedelta(seconds=15):
             return self.bulk_data
-        
+
         if not self.api_key:
             return None
 
@@ -128,7 +131,7 @@ class TAAPIBulkUtils(metaclass=Singleton):
         if self.bulk_data is None or not isinstance(self.bulk_data, dict):
             return None
         return {indicator: self.bulk_data.get(indicator, {}) for indicator in self.trend_momentum_indicators}
-    
+
     def fetch_volatility_structure_indicators_from_taapi(self):
         """
         Fetch volatility and structure indicators from TAAPI.io.

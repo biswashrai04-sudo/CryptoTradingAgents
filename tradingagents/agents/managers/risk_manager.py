@@ -1,12 +1,9 @@
-import time
-import json
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.i18n import get_prompts
 
+
 def create_risk_manager(llm, memory):
     def risk_manager_node(state) -> dict:
-
-        asset_name = state["asset_of_interest"]
 
         history = state["risk_debate_state"]["history"]
         risk_debate_state = state["risk_debate_state"]
@@ -25,16 +22,19 @@ def create_risk_manager(llm, memory):
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
 
-        prompt = get_prompts("managers", "risk_manager") \
-            .replace("{max_tokens}", str(DEFAULT_CONFIG["max_tokens"])) \
-            .replace("{trader_plan}", trader_plan) \
-            .replace("{past_memory_str}", past_memory_str) \
-            .replace("{history}", history) \
-            .replace("{external_reports}", "\n".join(external_reports)) \
-            + "\n\n" \
-            + get_prompts("investment_preferences", "system_message") \
-            .replace("{investment_preferences}", investment_preferences)
-        
+        prompt = (
+            get_prompts("managers", "risk_manager")
+            .replace("{max_tokens}", str(DEFAULT_CONFIG["max_tokens"]))
+            .replace("{trader_plan}", trader_plan)
+            .replace("{past_memory_str}", past_memory_str)
+            .replace("{history}", history)
+            .replace("{external_reports}", "\n".join(external_reports))
+            + "\n\n"
+            + get_prompts("investment_preferences", "system_message").replace(
+                "{investment_preferences}", investment_preferences
+            )
+        )
+
         response = llm.invoke(prompt)
 
         new_risk_debate_state = {

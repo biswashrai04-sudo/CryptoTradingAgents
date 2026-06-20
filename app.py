@@ -3,20 +3,33 @@ CryptoTradingAgents - Streamlit Web UI
 A browser-based dashboard for the headless trading agent framework.
 """
 
-import os
 import datetime
+import os
+
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-from tradingagents.dataflows.coingecko_utils import fetch_live_prices
 
-# Load environment variables from the CLI .env file
-load_dotenv("./cli/.env", override=True)
-
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
 from cli.utils import extract_reports_from_final_state, save_reports
-from cli.models import AnalystType
+from tradingagents.dataflows.coingecko_utils import fetch_live_prices
+from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+
+# ---------------------------------------------------------------------------
+# API Key Loading — supports local .env AND Streamlit Community Cloud secrets
+# ---------------------------------------------------------------------------
+# 1. Load local .env files (for development / Docker)
+load_dotenv("./cli/.env", override=True)
+load_dotenv(".env", override=True)
+
+# 2. Streamlit Community Cloud: inject st.secrets into os.environ
+#    Community Cloud provides secrets via st.secrets dict, NOT as env vars.
+#    All dataflow modules use os.getenv(), so we bridge the gap here.
+#    Local .env values take precedence (already set above, won't be overwritten).
+if hasattr(st, "secrets"):
+    for key, value in st.secrets.items():
+        if isinstance(value, str) and value and not os.getenv(key):
+            os.environ[key] = str(value)
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -140,7 +153,7 @@ investment_preferences = ""
 if use_preferences:
     # Try loading saved preferences
     try:
-        with open("./cli/investment_preferences", "r") as f:
+        with open("./cli/investment_preferences") as f:
             saved = f.read()
     except FileNotFoundError:
         saved = ""
@@ -242,14 +255,12 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
             ],
         }
 
-        col_idx = 0
-        for team, agents in team_agents.items():
+        for col_idx, (team, agents) in enumerate(team_agents.items()):
             with status_cols[col_idx % 4]:
                 st.markdown(f"**{team}**")
                 for agent in agents:
                     status_placeholders[agent] = st.empty()
                     status_placeholders[agent].markdown(f"⏳ {agent}")
-            col_idx += 1
 
     with report_container:
         st.markdown("### 📝 Analysis Reports")
@@ -478,7 +489,7 @@ if os.path.isdir(reports_dir):
             if rf.endswith(".md"):
                 with st.expander(f"📄 {rf}"):
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             st.markdown(f.read())
                     except Exception:
                         st.info(

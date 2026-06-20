@@ -69,4 +69,4 @@ LANG = {
     "depth_medium": "Medium - Middle ground, moderate debate rounds and strategy discussion",
     "depth_deep": "Deep - Comprehensive research, in depth debate and strategy discussion",
     "depth_instruction": "\n- Use arrow keys to navigate\n- Press Enter to select",
-} 
+}

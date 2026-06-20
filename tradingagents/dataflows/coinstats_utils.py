@@ -1,13 +1,14 @@
 
 import os
-import requests
 
+import requests
 from loguru import logger
+
 
 def fetch_btc_dominance_from_coinstats():
     """
     Fetches the current Bitcoin dominance percentage from CoinStats API.
-    
+
     Returns:
         dict: A dictionary containing Bitcoin dominance for 24 hours and 1 week. {"24h": value, "1w": value}
     """
@@ -31,7 +32,7 @@ def fetch_btc_dominance_from_coinstats():
         if response_24h.status_code == 200 and response_1w.status_code == 200:
             data_24h = response_24h.json()
             data_1w = response_1w.json()
-            
+
             if "data" in data_24h and "data" in data_1w and \
                 isinstance(data_24h["data"], list) and isinstance(data_1w["data"], list):
                 btc_dominance_24h = data_24h["data"][-1][1]
@@ -43,11 +44,11 @@ def fetch_btc_dominance_from_coinstats():
     except requests.exceptions.RequestException as e:
         logger.warning(f"CoinStats BTC dominance fetch failed: {e}")
         return None
-            
+
 def fetch_news_from_coinstats():
     """
     Fetches the latest news from CoinStats API.
-    
+
     Returns:
         list: A list of dictionaries containing news articles with keys: "title", "source", "description"
     """

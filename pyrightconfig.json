@@ -1,0 +1,23 @@
+{
+  "include": ["."],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.venv",
+    "**/.ruff_cache",
+    "**/logs",
+    "**/reports",
+    "**/.files"
+  ],
+  "typeCheckingMode": "standard",
+  "reportOptionalMemberAccess": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "reportOverlappingOverload": "warning",
+  "reportCallIssue": "warning",
+  "reportPropertyTypeMismatch": "warning",
+  "reportArgumentType": "warning",
+  "reportReturnType": "warning",
+  "pythonVersion": "3.10",
+  "pythonPlatform": "Windows"
+}

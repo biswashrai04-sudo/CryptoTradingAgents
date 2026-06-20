@@ -1,15 +1,15 @@
 
 import os
-from pathlib import Path
 import smtplib
 from email import encoders
 from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from dotenv import load_dotenv
 
 from tradingagents.default_config import DEFAULT_CONFIG
 
-from dotenv import load_dotenv
 load_dotenv()
 
 def get_latest_report_path():
@@ -36,7 +36,7 @@ def send_email_with_body(body: str):
     message["To"] = receiver_email
     message["Subject"] = "Warning - From Crypto Trading Agents"
     message.attach(MIMEText(body, "plain"))
-    
+
     try:
         with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
             server.login(sender_email, password)
@@ -81,7 +81,7 @@ def send_email_with_pdf(file_path: str):
         print(f"Email sent successfully with attachment: {file_path}")
     except Exception as e:
         print(f"Failed to send email: {e}")
-    
+
 def send_email_with_markdown(file_path: str):
     """Send an email with the markdown file content."""
     if not file_path or not os.path.exists(file_path) or not file_path.endswith(".md"):

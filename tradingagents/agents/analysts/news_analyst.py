@@ -1,8 +1,10 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from datetime import datetime
-import json
+
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.i18n import get_prompts
+
 
 def create_news_analyst(llm, toolkit):
     def news_analyst_node(state):

@@ -2,6 +2,7 @@
 import requests
 from loguru import logger
 
+
 def fetch_fear_and_greed_from_alternativeme():
     """
     Fetch the Fear and Greed Index from Alternative.me API.

@@ -4,7 +4,11 @@ Bypasses the questionary TUI and directly invokes TradingAgentsGraph.
 Equivalent to: python -m cli.main → BTC → Default analysts → Default depth
 """
 
-import os, sys, datetime, json, traceback
+import datetime
+import json
+import os
+import sys
+import traceback
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -27,23 +31,30 @@ except ImportError:
 
 _loaded = load_dotenv(dotenv_path=str(ENV_PATH), override=True)
 if not _loaded:
-    print(f"WARNING: No .env file found at {ENV_PATH} — using existing environment variables only.")
+    print(
+        f"WARNING: No .env file found at {ENV_PATH} — using existing environment variables only."
+    )
 
 # verify keys
 print("=" * 70)
 print("ENVIRONMENT CHECK")
 print("=" * 70)
-for k in ["OPENAI_API_KEY", "OPENROUTER_API_KEY", "TAAPI_API_KEY",
-          "COINSTATS_API_KEY", "COINDESK_API_KEY", "REDDIT_CLIENT_ID"]:
+for k in [
+    "OPENAI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "TAAPI_API_KEY",
+    "COINSTATS_API_KEY",
+    "COINDESK_API_KEY",
+    "REDDIT_CLIENT_ID",
+]:
     v = os.getenv(k, "")
-    masked = v[:8] + "..." + v[-4:] if len(v) > 12 else ("(empty)" if not v else v)
+    masked = v[:8] + "..." + v[-4:] if len(v) > 12 else (v if v else "(empty)")
     print(f"  {k}: {masked}")
 print()
 
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
-from tradingagents.agents.utils.agent_states import AgentState, InvestDebateState, RiskDebateState
 from cli.utils import extract_reports_from_final_state, save_reports
+from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 # --- Configuration ---
 TICKER = "BTC"
@@ -65,11 +76,13 @@ print()
 investment_prefs = ""
 prefs_path = CLI_DIR / "investment_preferences"
 try:
-    with open(prefs_path, "r") as f:
+    with open(prefs_path) as f:
         raw = f.read()
     # drop comment lines
     lines = raw.splitlines()
-    investment_prefs = "\n".join(l for l in lines if not l.strip().startswith("#"))
+    investment_prefs = "\n".join(
+        line for line in lines if not line.strip().startswith("#")
+    )
     print(f"INVESTMENT PREFS: {investment_prefs[:80]}...")
 except FileNotFoundError:
     print("INVESTMENT PREFS: (none)")
@@ -96,7 +109,9 @@ try:
     print("[1/6] Initializing TradingAgentsGraph...")
     graph = TradingAgentsGraph(ANALYSTS, config=config, debug=True)
     print("      [OK] Graph initialized")
-    print(f"      Tools available: {len(graph.tool_nodes) if hasattr(graph, 'tool_nodes') else 'N/A'}")
+    print(
+        f"      Tools available: {len(graph.tool_nodes) if hasattr(graph, 'tool_nodes') else 'N/A'}"
+    )
 
     # Create initial state
     print("\n[2/6] Creating initial state...")
@@ -123,30 +138,46 @@ try:
             content_preview = ""
             if hasattr(last, "content") and last.content:
                 c = str(last.content)
-                content_preview = c[:120].replace("\n", " ") + ("..." if len(c) > 120 else "")
+                content_preview = c[:120].replace("\n", " ") + (
+                    "..." if len(c) > 120 else ""
+                )
+                # Sanitize for Windows console (cp1252-safe)
+                content_preview = content_preview.encode(
+                    "cp1252", errors="replace"
+                ).decode("cp1252")
 
             tool_info = ""
             if has_tools:
-                tool_names = [tc.get("name") if isinstance(tc, dict) else tc.name for tc in last.tool_calls]
+                tool_names = [
+                    tc.get("name") if isinstance(tc, dict) else tc.name
+                    for tc in last.tool_calls
+                ]
                 tool_names_str = [str(n) for n in tool_names if n is not None]
                 tool_info = f" [TOOLS: {', '.join(tool_names_str)}]"
 
-            print(f"  Step {step_count}: {last.__class__.__name__}{tool_info} | {content_preview}")
+            print(
+                f"  Step {step_count}: {last.__class__.__name__}{tool_info} | {content_preview}"
+            )
 
         # Track report completions
-        for key in ["market_report", "sentiment_report", "news_report",
-                     "fundamentals_report", "trader_investment_plan"]:
+        for key in [
+            "market_report",
+            "sentiment_report",
+            "news_report",
+            "fundamentals_report",
+            "trader_investment_plan",
+        ]:
             if chunk.get(key):
                 print(f"  [OK] {key.upper()} received")
 
         if chunk.get("investment_debate_state"):
             ds = chunk["investment_debate_state"]
             if ds.get("judge_decision"):
-                print(f"  [OK] INVESTMENT_DEBATE complete (judge decided)")
+                print("  [OK] INVESTMENT_DEBATE complete (judge decided)")
         if chunk.get("risk_debate_state"):
             rs = chunk["risk_debate_state"]
             if rs.get("judge_decision"):
-                print(f"  [OK] RISK_DEBATE complete (judge decided)")
+                print("  [OK] RISK_DEBATE complete (judge decided)")
 
         trace.append(chunk)
 
@@ -172,12 +203,20 @@ try:
     print("\n[5/6] Saving reports...")
     reports = extract_reports_from_final_state(final_state)
     report_count = len(reports)
-    save_reports(TICKER, reports, config["report_dir"], config["report_type"], decision=final_decision)
+    save_reports(
+        TICKER,
+        reports,
+        config["report_dir"],
+        config["report_type"],
+        decision=final_decision,
+    )
     print(f"      [OK] {report_count} report sections saved")
 
     # Find the generated report file
     report_dir = Path(config["report_dir"])
-    md_files = sorted(report_dir.glob(f"{TICKER}_reports_*.md"), key=os.path.getmtime, reverse=True)
+    md_files = sorted(
+        report_dir.glob(f"{TICKER}_reports_*.md"), key=os.path.getmtime, reverse=True
+    )
     report_path = str(md_files[0]) if md_files else "NOT FOUND"
 
     # Log the full state
