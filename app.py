@@ -8,6 +8,7 @@ import datetime
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from tradingagents.dataflows.coingecko_utils import fetch_live_prices
 
 # Load environment variables from the CLI .env file
 load_dotenv("./cli/.env", override=True)
@@ -41,7 +42,11 @@ asset = st.sidebar.selectbox(
 
 research_depth = st.sidebar.selectbox(
     "Research Depth",
-    options=[("Shallow (1 round)", 1), ("Medium (3 rounds)", 3), ("Deep (5 rounds)", 5)],
+    options=[
+        ("Shallow (1 round)", 1),
+        ("Medium (3 rounds)", 3),
+        ("Deep (5 rounds)", 5),
+    ],
     index=1,
     format_func=lambda x: x[0],
     help="Number of debate/discussion rounds for research and risk teams.",
@@ -76,10 +81,7 @@ preferred_defaults = [
     "News Analyst",
 ]
 
-safe_defaults = [
-    a for a in preferred_defaults
-    if a in available_analysts
-]
+safe_defaults = [a for a in preferred_defaults if a in available_analysts]
 
 selected_analysts = st.sidebar.multiselect(
     "Select Analyst Team",
@@ -164,13 +166,30 @@ st.markdown(
 # ---------------------------------------------------------------------------
 st.markdown("## 📊 Market Overview")
 
-market_data = {
-    "Coin": ["Bitcoin", "Ethereum", "Binance Coin", "Solana", "XRP", "Cardano", "Chainlink", "Litecoin", "Polkadot", "Tether"],
-    "Ticker": ["BTC", "ETH", "BNB", "SOL", "XRP", "ADA", "LINK", "LTC", "DOT", "USDT"],
-    "Current Price": ["$63,823.95", "$3,036.82", "$578.00", "$137.92", "$0.49", "$0.72", "$20.50", "$84.30", "$5.15", "$1.00"],
-    "24h Change": ["+0.53%", "-3.54%", "-", "-1.0%", "-", "-", "-", "-", "-", "+0.01%"],
-}
-market_df = pd.DataFrame(market_data)
+
+@st.cache_data(ttl=60)
+def get_live_prices():
+    return fetch_live_prices()
+
+
+try:
+    prices = get_live_prices()
+    market_data = {
+        "Ticker": [p["ticker"] for p in prices],
+        "Current Price": [
+            f"${p['price']:,.2f}" if p["price"] >= 1 else f"${p['price']:.4f}"
+            for p in prices
+        ],
+        "24h Change": [p["change_24h"] for p in prices],
+    }
+    market_df = pd.DataFrame(market_data)
+except Exception:
+    market_data = {
+        "Info": [
+            "Could not fetch live prices from CoinGecko. Check your internet connection."
+        ]
+    }
+    market_df = pd.DataFrame(market_data)
 st.table(market_df)
 
 # Reports directory (matches default_config's report_dir relative path logic)
@@ -207,10 +226,20 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
         status_placeholders = {}
 
         team_agents = {
-            "Analyst Team": ["Market Analyst", "Social Media Analyst", "News Analyst", "Fundamentals Analyst"],
+            "Analyst Team": [
+                "Market Analyst",
+                "Social Media Analyst",
+                "News Analyst",
+                "Fundamentals Analyst",
+            ],
             "Research Team": ["Bull Researcher", "Bear Researcher", "Research Manager"],
             "Trading Team": ["Trader"],
-            "Risk Management": ["Risky Analyst", "Safe Analyst", "Neutral Analyst", "Portfolio Manager"],
+            "Risk Management": [
+                "Risky Analyst",
+                "Safe Analyst",
+                "Neutral Analyst",
+                "Portfolio Manager",
+            ],
         }
 
         col_idx = 0
@@ -224,15 +253,34 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
 
     with report_container:
         st.markdown("### 📝 Analysis Reports")
-        report_tabs = st.tabs([
-            "Market", "Sentiment", "News", "Fundamentals",
-            "Research Debate", "Trader Plan", "Risk Debate", "Final Decision"
-        ])
-        report_placeholders = {name: tab.empty() for name, tab in zip(
-            ["Market", "Sentiment", "News", "Fundamentals",
-             "Research Debate", "Trader Plan", "Risk Debate", "Final Decision"],
-            report_tabs
-        )}
+        report_tabs = st.tabs(
+            [
+                "Market",
+                "Sentiment",
+                "News",
+                "Fundamentals",
+                "Research Debate",
+                "Trader Plan",
+                "Risk Debate",
+                "Final Decision",
+            ]
+        )
+        report_placeholders = {
+            name: tab.empty()
+            for name, tab in zip(
+                [
+                    "Market",
+                    "Sentiment",
+                    "News",
+                    "Fundamentals",
+                    "Research Debate",
+                    "Trader Plan",
+                    "Risk Debate",
+                    "Final Decision",
+                ],
+                report_tabs,
+            )
+        }
 
     try:
         # Initialize graph
@@ -296,7 +344,9 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
 
             # Fundamentals report
             if chunk.get("fundamentals_report"):
-                report_placeholders["Fundamentals"].markdown(chunk["fundamentals_report"])
+                report_placeholders["Fundamentals"].markdown(
+                    chunk["fundamentals_report"]
+                )
                 set_status("Fundamentals Analyst", "done")
                 progress_bar.progress(0.40, text="Fundamentals analysis complete")
 
@@ -311,15 +361,21 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
                     parts.append(f"**🐻 Bear Researcher:**\n\n{debate['bear_history']}")
                     set_status("Bear Researcher", "done")
                 if debate.get("judge_decision"):
-                    parts.append(f"**⚖️ Research Manager Decision:**\n\n{debate['judge_decision']}")
+                    parts.append(
+                        f"**⚖️ Research Manager Decision:**\n\n{debate['judge_decision']}"
+                    )
                     set_status("Research Manager", "done")
                 if parts:
-                    report_placeholders["Research Debate"].markdown("\n\n---\n\n".join(parts))
+                    report_placeholders["Research Debate"].markdown(
+                        "\n\n---\n\n".join(parts)
+                    )
                 progress_bar.progress(0.55, text="Research debate in progress...")
 
             # Trader plan
             if chunk.get("trader_investment_plan"):
-                report_placeholders["Trader Plan"].markdown(chunk["trader_investment_plan"])
+                report_placeholders["Trader Plan"].markdown(
+                    chunk["trader_investment_plan"]
+                )
                 set_status("Trader", "done")
                 progress_bar.progress(0.70, text="Trader plan ready")
 
@@ -328,25 +384,41 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
                 risk = chunk["risk_debate_state"]
                 risk_parts = []
                 if risk.get("current_risky_response"):
-                    risk_parts.append(f"**🔥 Aggressive Analyst:**\n\n{risk['current_risky_response']}")
+                    risk_parts.append(
+                        f"**🔥 Aggressive Analyst:**\n\n{risk['current_risky_response']}"
+                    )
                 if risk.get("risky_history"):
-                    risk_parts.append(f"**🔥 Aggressive History:**\n\n{risk['risky_history']}")
+                    risk_parts.append(
+                        f"**🔥 Aggressive History:**\n\n{risk['risky_history']}"
+                    )
                     set_status("Risky Analyst", "done")
                 if risk.get("current_safe_response"):
-                    risk_parts.append(f"**🛡️ Conservative Analyst:**\n\n{risk['current_safe_response']}")
+                    risk_parts.append(
+                        f"**🛡️ Conservative Analyst:**\n\n{risk['current_safe_response']}"
+                    )
                 if risk.get("safe_history"):
-                    risk_parts.append(f"**🛡️ Conservative History:**\n\n{risk['safe_history']}")
+                    risk_parts.append(
+                        f"**🛡️ Conservative History:**\n\n{risk['safe_history']}"
+                    )
                     set_status("Safe Analyst", "done")
                 if risk.get("current_neutral_response"):
-                    risk_parts.append(f"**⚖️ Neutral Analyst:**\n\n{risk['current_neutral_response']}")
+                    risk_parts.append(
+                        f"**⚖️ Neutral Analyst:**\n\n{risk['current_neutral_response']}"
+                    )
                 if risk.get("neutral_history"):
-                    risk_parts.append(f"**⚖️ Neutral History:**\n\n{risk['neutral_history']}")
+                    risk_parts.append(
+                        f"**⚖️ Neutral History:**\n\n{risk['neutral_history']}"
+                    )
                     set_status("Neutral Analyst", "done")
                 if risk.get("judge_decision"):
-                    risk_parts.append(f"**🏆 Portfolio Manager Decision:**\n\n{risk['judge_decision']}")
+                    risk_parts.append(
+                        f"**🏆 Portfolio Manager Decision:**\n\n{risk['judge_decision']}"
+                    )
                     set_status("Portfolio Manager", "done")
                 if risk_parts:
-                    report_placeholders["Risk Debate"].markdown("\n\n---\n\n".join(risk_parts))
+                    report_placeholders["Risk Debate"].markdown(
+                        "\n\n---\n\n".join(risk_parts)
+                    )
                 progress_bar.progress(0.85, text="Risk analysis in progress...")
 
         # Final state and decision
@@ -368,10 +440,18 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
             # Save reports
             if config.get("save_report", True):
                 reports = extract_reports_from_final_state(final_state)
-                save_reports(asset, reports, reports_dir, config.get("report_type", "md"), decision=decision)
+                save_reports(
+                    asset,
+                    reports,
+                    reports_dir,
+                    config.get("report_type", "md"),
+                    decision=decision,
+                )
 
             progress_bar.progress(1.0, text="✅ Analysis complete!")
-            st.success(f"Analysis for {asset} completed! Decision: **{decision.upper()}**")
+            st.success(
+                f"Analysis for {asset} completed! Decision: **{decision.upper()}**"
+            )
 
             # Mark all as done
             for agent_name in status_placeholders:
@@ -401,7 +481,9 @@ if os.path.isdir(reports_dir):
                         with open(file_path, "r", encoding="utf-8") as f:
                             st.markdown(f.read())
                     except Exception:
-                        st.info(f"Markdown file: {rf} ({os.path.getsize(file_path):,} bytes)")
+                        st.info(
+                            f"Markdown file: {rf} ({os.path.getsize(file_path):,} bytes)"
+                        )
             else:
                 st.markdown(f"📕 **{rf}** (PDF – {os.path.getsize(file_path):,} bytes)")
     else:

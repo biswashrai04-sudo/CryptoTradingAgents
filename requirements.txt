@@ -8,7 +8,7 @@ praw
 feedparser
 stockstats
 eodhd
-langgraph
+langgraph<1.0.0
 chromadb
 setuptools
 backtrader
@@ -29,3 +29,4 @@ binance-futures-connector
 praw
 markdown-pdf
 loguru
+starlette>=0.42.0

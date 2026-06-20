@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv("./cli/.env", override=True)
 
 from typing import Optional
 import datetime

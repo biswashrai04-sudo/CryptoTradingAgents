@@ -1,6 +1,7 @@
 
 import os
 import requests
+from loguru import logger
 
 def fetch_news_from_coindesk(tickers=[], count=10) -> list[dict[str, str]]:
     """
@@ -15,20 +16,29 @@ def fetch_news_from_coindesk(tickers=[], count=10) -> list[dict[str, str]]:
     """
     api_key = os.getenv('COINDESK_API_KEY')
     if not api_key:
-        return None
+        return []
 
     url = f"https://data-api.coindesk.com/news/v1/article/list?lang=EN&limit={count}&categories={','.join(tickers)}&api_key={api_key}"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        data = response.json()
-        if "Data" in data and isinstance(data["Data"], list):
-            return list(map(lambda item: {
-                "title": item.get("TITLE", ""),
-                "categories": item.get("KEYWORDS", []),
-                "body": item.get("BODY", ""),
-            }, data["Data"]))
+    logger.debug(f"Starting CoinDesk news fetch for tickers: {tickers}...")
+    try:
+        response = requests.get(url, timeout=30)
+        logger.debug(f"CoinDesk news fetch completed (status {response.status_code})")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if "Data" in data and isinstance(data["Data"], list):
+                return list(map(lambda item: {
+                    "title": item.get("TITLE", ""),
+                    "categories": item.get("KEYWORDS", []),
+                    "body": item.get("BODY", ""),
+                }, data["Data"]))
+            return []
+        else:
+            logger.warning(f"CoinDesk error: {response.status_code} - {response.text}")
+            return []
+    except requests.exceptions.Timeout:
+        logger.warning("CoinDesk news fetch timed out after 30s")
         return []
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"CoinDesk news fetch failed: {e}")
         return []

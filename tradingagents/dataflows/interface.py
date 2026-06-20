@@ -18,7 +18,7 @@ from tqdm import tqdm
 from openai import OpenAI, NotGiven
 from .config import get_config, set_config, DATA_DIR
 
-from warnings import deprecated
+from typing_extensions import deprecated
 from .yfin_utils import *
 from .stockstats_utils import *
 from .finnhub_utils import get_data_in_range

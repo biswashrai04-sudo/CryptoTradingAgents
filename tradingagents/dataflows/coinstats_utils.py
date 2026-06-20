@@ -2,6 +2,8 @@
 import os
 import requests
 
+from loguru import logger
+
 def fetch_btc_dominance_from_coinstats():
     """
     Fetches the current Bitcoin dominance percentage from CoinStats API.
@@ -20,18 +22,27 @@ def fetch_btc_dominance_from_coinstats():
         "X-API-KEY": api_key
     }
 
-    response_24h = requests.get(url_24h, headers=headers)
-    response_1w = requests.get(url_1w, headers=headers)
+    logger.debug("Starting CoinStats BTC dominance fetch...")
+    try:
+        response_24h = requests.get(url_24h, headers=headers, timeout=30)
+        response_1w = requests.get(url_1w, headers=headers, timeout=30)
+        logger.debug("CoinStats BTC dominance fetch completed")
 
-    if response_24h.status_code == 200 and response_1w.status_code == 200:
-        data_24h = response_24h.json()
-        data_1w = response_1w.json()
-        
-        if "data" in data_24h and "data" in data_1w and \
-            isinstance(data_24h["data"], list) and isinstance(data_1w["data"], list):
-            btc_dominance_24h = data_24h["data"][-1][1]
-            btc_dominance_1w = data_1w["data"][-1][1]
-            return {"24h": btc_dominance_24h, "1w": btc_dominance_1w}
+        if response_24h.status_code == 200 and response_1w.status_code == 200:
+            data_24h = response_24h.json()
+            data_1w = response_1w.json()
+            
+            if "data" in data_24h and "data" in data_1w and \
+                isinstance(data_24h["data"], list) and isinstance(data_1w["data"], list):
+                btc_dominance_24h = data_24h["data"][-1][1]
+                btc_dominance_1w = data_1w["data"][-1][1]
+                return {"24h": btc_dominance_24h, "1w": btc_dominance_1w}
+    except requests.exceptions.Timeout:
+        logger.warning("CoinStats BTC dominance fetch timed out after 30s")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"CoinStats BTC dominance fetch failed: {e}")
+        return None
             
 def fetch_news_from_coinstats():
     """
@@ -48,14 +59,23 @@ def fetch_news_from_coinstats():
         "accept": "application/json",
         "X-API-KEY": api_key
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        if isinstance(data, list):
-            return [
-                {
-                    "title": article.get("title", ""),
-                    "description": article.get("description", ""),
-                    "source": article.get("source", "")
-                } for article in data
-            ]
+    logger.debug("Starting CoinStats news fetch...")
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        logger.debug("CoinStats news fetch completed")
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list):
+                return [
+                    {
+                        "title": article.get("title", ""),
+                        "description": article.get("description", ""),
+                        "source": article.get("source", "")
+                    } for article in data
+                ]
+    except requests.exceptions.Timeout:
+        logger.warning("CoinStats news fetch timed out after 30s")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"CoinStats news fetch failed: {e}")
+        return None

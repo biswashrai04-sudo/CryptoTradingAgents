@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv("./cli/.env", override=True)
 
 import datetime
 from time import sleep

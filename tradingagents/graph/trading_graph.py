@@ -59,8 +59,9 @@ class TradingAgentsGraph:
 
         # Initialize LLMs
         if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"], max_completion_tokens=self.config["max_tokens"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"], max_completion_tokens=self.config["max_tokens"])
+            api_key = os.getenv(self.config.get("api_key_env_name", "OPENAI_API_KEY"))
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"], api_key=api_key, max_completion_tokens=self.config["max_tokens"])
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"], api_key=api_key, max_completion_tokens=self.config["max_tokens"])
         elif self.config["llm_provider"].lower() == "qwen":
             self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"], api_key=os.getenv("DASHSCOPE_API_KEY"), max_completion_tokens=self.config["max_tokens"])
             self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"], api_key=os.getenv("DASHSCOPE_API_KEY"), max_completion_tokens=self.config["max_tokens"])

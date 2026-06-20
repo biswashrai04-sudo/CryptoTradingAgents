@@ -2,6 +2,7 @@
 import os
 from datetime import datetime, timedelta
 import requests
+from loguru import logger
 from .utils import Singleton
 
 def fetch_ta_from_taapi(symbol: str, indicator: str, interval: str = "15m", **params):
@@ -25,8 +26,17 @@ def fetch_ta_from_taapi(symbol: str, indicator: str, interval: str = "15m", **pa
         **params
     }
     url = f"https://api.taapi.io/{indicator}"
-    response = requests.get(url, params=params)
-    return response.text if response.status_code == 200 else None
+    logger.debug(f"Starting TAAPI fetch: {indicator} for {symbol} ({interval})...")
+    try:
+        response = requests.get(url, params=params, timeout=30)
+        logger.debug(f"TAAPI fetch completed: {indicator} (status {response.status_code})")
+        return response.text if response.status_code == 200 else None
+    except requests.exceptions.Timeout:
+        logger.warning(f"TAAPI fetch timed out after 30s: {indicator} for {symbol}")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"TAAPI fetch failed: {indicator} for {symbol}: {e}")
+        return None
 
 class TAAPIBulkUtils(metaclass=Singleton):
     """
@@ -86,18 +96,27 @@ class TAAPIBulkUtils(metaclass=Singleton):
                 "indicators": self.indicator_params
             }
         }
+        logger.debug(f"Starting TAAPI bulk fetch for {self.symbol} ({self.bulk_interval})...")
         self.last_fetch_time = datetime.now()
-        response = requests.post(url, json=body)
-        if response.status_code == 200:
-            data = response.json()
-            if "data" in data and isinstance(data["data"], list):
-                format_floats_in_dict = lambda d: {k: (round(v, 4) if isinstance(v, float) else v) for k, v in d.items()}
-                self.bulk_data = {
-                    item["indicator"]: format_floats_in_dict(item["result"])
-                    for item in data["data"]
-                }
-        else:
-            print(f"Error fetching bulk data: {response.status_code} - {response.text}")
+        try:
+            response = requests.post(url, json=body, timeout=60)
+            if response.status_code == 200:
+                data = response.json()
+                if "data" in data and isinstance(data["data"], list):
+                    format_floats_in_dict = lambda d: {k: (round(v, 4) if isinstance(v, float) else v) for k, v in d.items()}
+                    self.bulk_data = {
+                        item["indicator"]: format_floats_in_dict(item["result"])
+                        for item in data["data"]
+                    }
+                    logger.debug(f"TAAPI bulk fetch completed: {len(self.bulk_data)} indicators")
+            else:
+                logger.warning(f"TAAPI bulk fetch error: {response.status_code} - {response.text}")
+                self.bulk_data = None
+        except requests.exceptions.Timeout:
+            logger.warning(f"TAAPI bulk fetch timed out after 60s for {self.symbol}")
+            self.bulk_data = None
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"TAAPI bulk fetch failed for {self.symbol}: {e}")
             self.bulk_data = None
 
     def fetch_trend_momentum_indicators_from_taapi(self):

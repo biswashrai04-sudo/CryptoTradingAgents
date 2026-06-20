@@ -1,5 +1,6 @@
 from functools import reduce
 import importlib
+from typing import overload
 from tradingagents.default_config import DEFAULT_CONFIG
 
 def get_value(dictionary: dict, *keys, default=None):
@@ -12,7 +13,11 @@ def get_value(dictionary: dict, *keys, default=None):
     except (KeyError, TypeError):
         return default
 
-def get_lang(*keys, default="") -> str | dict:
+@overload
+def get_lang() -> dict: ...
+@overload
+def get_lang(*keys: str, default: str = "") -> str: ...
+def get_lang(*keys, default="") -> str | dict | None:
     lang_code = DEFAULT_CONFIG.get("language", "zh")
     try:
         lang_module = importlib.import_module(f"tradingagents.i18n.{lang_code}")
@@ -24,9 +29,9 @@ def get_lang(*keys, default="") -> str | dict:
         from .interface.zh import LANG
         if not keys:
             return LANG
-        return get_value(LANG, *keys, default=default) 
+        return get_value(LANG, *keys, default=default)
     
-def get_prompts(*keys, default="") -> str:
+def get_prompts(*keys, default="") -> str | None:
     lang_code = DEFAULT_CONFIG.get("language", "zh")
     try:
         lang_module = importlib.import_module(f"tradingagents.i18n.{lang_code}")

@@ -1,7 +1,7 @@
 import json
 import os
 
-from warnings import deprecated
+from typing_extensions import deprecated
 @deprecated("Utilities only for stocks are deprecated.")
 def get_data_in_range(ticker, start_date, end_date, data_type, data_dir, period=None):
     """

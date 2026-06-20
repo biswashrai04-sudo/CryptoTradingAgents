@@ -1,4 +1,10 @@
 # gets data/stats
+# pyright: reportSelfClsParameterName=false
+# The decorator pattern below (init_ticker) replaces the first parameter
+# (a yfinance.Ticker) at runtime. Methods intentionally omit `self`.
+# Disabling the "parameter must be a supertype of its class" check project-wide
+# for this file since it's a deliberate meta-programming design choice.
+
 import yfinance as yf
 from typing import Annotated, Callable, Any, Optional
 from pandas import DataFrame
@@ -18,7 +24,8 @@ def init_ticker(func: Callable) -> Callable:
 
     return wrapper
 
-from warnings import deprecated
+from typing_extensions import deprecated
+
 @deprecated("Utilities only for stocks are deprecated.")
 @decorate_all_methods(init_ticker)
 class YFinanceUtils:
@@ -31,14 +38,14 @@ class YFinanceUtils:
         end_date: Annotated[
             str, "end date for retrieving stock price data, YYYY-mm-dd"
         ],
-        save_path: SavePathType = None,
+        save_path: Optional[str] = None,
     ) -> DataFrame:
         """retrieve stock price data for designated ticker symbol"""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         # add one day to the end_date so that the data range is inclusive
-        end_date = pd.to_datetime(end_date) + pd.DateOffset(days=1)
-        end_date = end_date.strftime("%Y-%m-%d")
-        stock_data = ticker.history(start=start_date, end=end_date)
+        end_dt = pd.to_datetime(end_date) + pd.DateOffset(days=1)
+        end_str = end_dt.strftime("%Y-%m-%d")
+        stock_data = ticker.history(start=start_date, end=end_str)
         # save_output(stock_data, f"Stock data for {ticker.ticker}", save_path)
         return stock_data
 
@@ -46,7 +53,7 @@ class YFinanceUtils:
         symbol: Annotated[str, "ticker symbol"],
     ) -> dict:
         """Fetches and returns latest stock information."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         stock_info = ticker.info
         return stock_info
 
@@ -55,7 +62,7 @@ class YFinanceUtils:
         save_path: Optional[str] = None,
     ) -> DataFrame:
         """Fetches and returns asset information as a DataFrame."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         info = ticker.info
         asset_info = {
             "Asset Name": info.get("shortName", "N/A"),
@@ -75,34 +82,42 @@ class YFinanceUtils:
         save_path: Optional[str] = None,
     ) -> DataFrame:
         """Fetches and returns the latest dividends data as a DataFrame."""
-        ticker = symbol
-        dividends = ticker.dividends
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
+        dividends: DataFrame = ticker.dividends  # type: ignore[assignment]
         if save_path:
             dividends.to_csv(save_path)
             print(f"Dividends for {ticker.ticker} saved to {save_path}")
         return dividends
 
-    def get_income_stmt(symbol: Annotated[str, "ticker symbol"]) -> DataFrame:
+    def get_income_stmt(
+        symbol: Annotated[str, "ticker symbol"],
+    ) -> DataFrame:
         """Fetches and returns the latest income statement of the asset as a DataFrame."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         income_stmt = ticker.financials
         return income_stmt
 
-    def get_balance_sheet(symbol: Annotated[str, "ticker symbol"]) -> DataFrame:
+    def get_balance_sheet(
+        symbol: Annotated[str, "ticker symbol"],
+    ) -> DataFrame:
         """Fetches and returns the latest balance sheet of the asset as a DataFrame."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         balance_sheet = ticker.balance_sheet
         return balance_sheet
 
-    def get_cash_flow(symbol: Annotated[str, "ticker symbol"]) -> DataFrame:
+    def get_cash_flow(
+        symbol: Annotated[str, "ticker symbol"],
+    ) -> DataFrame:
         """Fetches and returns the latest cash flow statement of the asset as a DataFrame."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         cash_flow = ticker.cashflow
         return cash_flow
 
-    def get_analyst_recommendations(symbol: Annotated[str, "ticker symbol"]) -> tuple:
+    def get_analyst_recommendations(
+        symbol: Annotated[str, "ticker symbol"],
+    ) -> tuple:
         """Fetches the latest analyst recommendations and returns the most common recommendation and its count."""
-        ticker = symbol
+        ticker: yf.Ticker = symbol  # type: ignore[assignment]
         recommendations = ticker.recommendations
         if recommendations.empty:
             return None, 0  # No recommendations available
