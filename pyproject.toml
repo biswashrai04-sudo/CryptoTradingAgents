@@ -25,12 +25,12 @@ dependencies = [
     "requests>=2.32.4",
     "rich>=14.0.0",
     "setuptools>=80.9.0",
-    "starlette==0.40.0",
     "stockstats>=0.6.5",
     "tqdm>=4.67.1",
     "tushare>=1.4.21",
     "typing-extensions>=4.14.0",
     "yfinance>=0.2.63",
+    "onnxruntime>=1.22.0,<1.24.0",
 ]
 
 [project.optional-dependencies]
