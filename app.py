@@ -117,7 +117,7 @@ llm_provider = st.sidebar.selectbox(
 
 # Quick-think model
 quick_think_defaults = {
-    "openrouter": "meta-llama/llama-4-scout:free",
+    "openrouter": "deepseek/deepseek-chat-v3-0324:free",
     "openai": "gpt-4o-mini",
     "qwen": "qwen-turbo-latest",
     "anthropic": "claude-3-5-haiku-latest",

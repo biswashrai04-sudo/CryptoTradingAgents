@@ -7,12 +7,30 @@ from openai import OpenAI
 
 class FinancialSituationMemory:
     def __init__(self, name, config):
+        self.config = config
         if config["backend_url"] == "http://localhost:11434/v1":
             self.embedding = "nomic-embed-text"
+            self.client = OpenAI(
+                base_url=config["backend_url"],
+                api_key="ollama",
+            )
         elif config["llm_provider"] == "qwen":
             self.embedding = "text-embedding-v4"
             self.client = OpenAI(
-                base_url=config["backend_url"], api_key=os.getenv("DASHSCOPE_API_KEY")
+                base_url=config["backend_url"],
+                api_key=os.getenv("DASHSCOPE_API_KEY")
+            )
+        elif config["llm_provider"] == "gitee":
+            self.embedding = "Qwen3-Embedding-8B"
+            self.client = OpenAI(
+                base_url=config["backend_url"],
+                api_key=os.getenv("GITEE_API_KEY")
+            )
+        else:
+            self.embedding = "openai/text-embedding-3-small"
+            self.client = OpenAI(
+                base_url=config["backend_url"],
+                api_key=os.getenv(config["api_key_env_name"]),
             )
         elif config["llm_provider"] == "gitee":
             self.embedding = "Qwen3-Embedding-8B"

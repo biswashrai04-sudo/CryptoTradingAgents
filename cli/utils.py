@@ -1,4 +1,3 @@
-
 import questionary
 from markdown_pdf import MarkdownPdf, Section
 
@@ -183,7 +182,10 @@ def select_shallow_thinking_agent(provider) -> str:
             ),
         ],
         "openrouter": [
-            ("Meta: Llama 4 Scout", "meta-llama/llama-4-scout:free"),
+            (
+                "DeepSeek: DeepSeek V3 0324 - Strong reasoning and cost-efficient MoE model",
+                "deepseek/deepseek-chat-v3-0324:free",
+            ),
             (
                 "Meta: Llama 3.3 8B Instruct - A lightweight and ultra-fast variant of Llama 3.3 70B",
                 "meta-llama/llama-3.3-8b-instruct:free",
