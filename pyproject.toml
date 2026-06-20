@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "akshare>=1.16.98",
     "backtrader>=1.9.78.123",
-    "chainlit>=2.5.5",
     "chromadb>=1.0.12",
     "eodhd>=1.0.32",
     "feedparser>=6.0.11",
@@ -26,10 +25,43 @@ dependencies = [
     "requests>=2.32.4",
     "rich>=14.0.0",
     "setuptools>=80.9.0",
-    "starlette>=0.42.0",
+    "starlette==0.40.0",
     "stockstats>=0.6.5",
     "tqdm>=4.67.1",
     "tushare>=1.4.21",
     "typing-extensions>=4.14.0",
     "yfinance>=0.2.63",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11.0",
+    "debugpy>=1.8.0",
+]
+
+[tool.ruff]
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "W", "I", "UP", "N", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tradingagents/dataflows/yfin_utils.py" = ["N805"]
+"tradingagents/i18n/**" = ["RUF001"]
+"cli/utils.py" = ["N806"]
+"cli/run.py" = ["E402", "F541"]
+"cli/main.py" = ["E402", "F841"]
+"app.py" = ["E402", "RUF001", "RUF003"]
+"test_btc_run.py" = ["E402"]
+"tradingagents/agents/utils/agent_utils.py" = ["N803"]
+"tradingagents/dataflows/interface.py" = ["F403", "F405", "E402", "N802"]
+"tradingagents/dataflows/googlenews_utils.py" = ["N802"]
+"tradingagents/dataflows/finnhub_utils.py" = ["SIM115"]
+"tradingagents/dataflows/taapi_utils.py" = ["E731", "RUF012"]
+"tradingagents/dataflows/utils.py" = ["RUF012"]
+"tradingagents/graph/trading_graph.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
