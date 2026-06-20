@@ -12,9 +12,9 @@ DEFAULT_CONFIG = {
     "send_report_to_email": False,
     # LLM settings
     "llm_provider": "openrouter",
-    "deep_think_llm": "deepseek/deepseek-v4-flash",
-    "quick_think_llm": "deepseek/deepseek-v4-flash",
-    "search_llm": "deepseek/deepseek-v4-flash",
+    "deep_think_llm": "meta-llama/llama-4-scout",
+    "quick_think_llm": "meta-llama/llama-4-scout",
+    "search_llm": "meta-llama/llama-4-scout",
     "backend_url": "https://openrouter.ai/api/v1",
     "search_backend_url": "https://openrouter.ai/api/v1",
     "api_key_env_name": "OPENROUTER_API_KEY",
