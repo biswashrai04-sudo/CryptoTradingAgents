@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 COINGECKO_BASE = "https://api.coingecko.com/api/v3"
@@ -20,7 +22,9 @@ COIN_IDS = {
 def fetch_live_prices():
     ids = ",".join(COIN_IDS.values())
     url = f"{COINGECKO_BASE}/simple/price?ids={ids}&vs_currencies=usd&include_24hr_change=true"
-    resp = requests.get(url, timeout=10)
+    api_key = os.getenv("COINGECKO_API_KEY")
+    headers = {"x-cg-demo-api-key": api_key} if api_key else {}
+    resp = requests.get(url, headers=headers, timeout=10)
     resp.raise_for_status()
     data = resp.json()
 
