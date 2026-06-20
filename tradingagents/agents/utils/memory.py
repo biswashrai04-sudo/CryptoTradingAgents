@@ -12,27 +12,28 @@ class FinancialSituationMemory:
         elif config["llm_provider"] == "qwen":
             self.embedding = "text-embedding-v4"
             self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv("DASHSCOPE_API_KEY")
+                base_url=config["backend_url"], api_key=os.getenv("DASHSCOPE_API_KEY")
             )
         elif config["llm_provider"] == "gitee":
             self.embedding = "Qwen3-Embedding-8B"
             self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv("GITEE_API_KEY")
+                base_url=config["backend_url"], api_key=os.getenv("GITEE_API_KEY")
             )
         else:
             self.embedding = "text-embedding-3-small"
-            self.client = OpenAI()
+            self.client = OpenAI(
+                base_url=config["backend_url"],
+                api_key=os.getenv(config["api_key_env_name"]),
+            )
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
-        self.situation_collection = self.chroma_client.get_or_create_collection(name=name)
+        self.situation_collection = self.chroma_client.get_or_create_collection(
+            name=name
+        )
 
     def get_embedding(self, text):
         """Get OpenAI embedding for a text"""
 
-        response = self.client.embeddings.create(
-            model=self.embedding, input=text
-        )
+        response = self.client.embeddings.create(model=self.embedding, input=text)
         return response.data[0].embedding
 
     def add_situations(self, situations_and_advice):
