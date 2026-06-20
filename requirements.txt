@@ -28,6 +28,6 @@ binance-futures-connector
 praw
 markdown-pdf
 loguru
-starlette<0.41.0
+starlette>=0.41.0
 onnxruntime<1.24.0
 streamlit
