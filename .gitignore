@@ -17,3 +17,6 @@ eval_data/
 tests/
 logs/
 nul
+
+# uv.lock — forces Community Cloud to use requirements.txt instead of uv-sync
+uv.lock
