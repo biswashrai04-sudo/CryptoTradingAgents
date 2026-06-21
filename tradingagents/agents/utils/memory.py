@@ -1,66 +1,91 @@
+import contextlib
 import os
+from typing import Any, cast
 
-import chromadb
-from chromadb.config import Settings
-from openai import OpenAI
+
+def _get_chromadb():
+    import chromadb
+
+    return chromadb
+
+
+def _get_default_embedding_function():
+    from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+
+    return DefaultEmbeddingFunction()
+
+
+# Resolve a stable, project-relative directory so the ChromaDB store survives
+# across multiple TradingAgentsGraph instantiations (e.g. Streamlit reruns or
+# repeated CLI invocations) without colliding on collection names.
+_PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+_CHROMA_PERSIST_DIR = os.path.join(_PROJECT_ROOT, "data_cache", "chroma")
+os.makedirs(_CHROMA_PERSIST_DIR, exist_ok=True)
 
 
 class FinancialSituationMemory:
     def __init__(self, name, config):
         self.config = config
-        if config["backend_url"] == "http://localhost:11434/v1":
-            self.embedding = "nomic-embed-text"
-            self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key="ollama",
-            )
-        elif config["llm_provider"] == "qwen":
-            self.embedding = "text-embedding-v4"
-            self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv("DASHSCOPE_API_KEY")
-            )
-        elif config["llm_provider"] == "gitee":
-            self.embedding = "Qwen3-Embedding-8B"
-            self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv("GITEE_API_KEY")
-            )
-        else:
-            self.embedding = "openai/text-embedding-3-small"
-            self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv(config["api_key_env_name"]),
-            )
-        elif config["llm_provider"] == "gitee":
-            self.embedding = "Qwen3-Embedding-8B"
-            self.client = OpenAI(
-                base_url=config["backend_url"], api_key=os.getenv("GITEE_API_KEY")
-            )
-        else:
-            self.embedding = "text-embedding-3-small"
-            self.client = OpenAI(
-                base_url=config["backend_url"],
-                api_key=os.getenv(config["api_key_env_name"]),
-            )
-        self.chroma_client = chromadb.Client(Settings(allow_reset=True))
-        self.situation_collection = self.chroma_client.get_or_create_collection(
-            name=name
+        self.embedding_fn = _get_default_embedding_function()
+
+        # Default to an ephemeral in-memory client to avoid issues with the
+        # platform-specific Rust-backed persistent client during tests or on
+        # platforms where the chromadb rust bindings can panic. To enable the
+        # persistent client, set the environment variable
+        # `TRADINGAGENTS_USE_PERSISTENT_CHROMA=1`.
+        use_persistent = os.getenv(
+            "TRADINGAGENTS_USE_PERSISTENT_CHROMA", "0"
+        ).lower() in (
+            "1",
+            "true",
+            "yes",
         )
 
-    def get_embedding(self, text):
-        """Get OpenAI embedding for a text"""
+        chromadb = _get_chromadb()
+        if use_persistent:
+            try:
+                self.chroma_client = chromadb.PersistentClient(path=_CHROMA_PERSIST_DIR)
+            except BaseException:
+                self.chroma_client = chromadb.EphemeralClient()
+        else:
+            self.chroma_client = chromadb.EphemeralClient()
 
-        response = self.client.embeddings.create(model=self.embedding, input=text)
-        return response.data[0].embedding
+        # Be defensive: a previous run may have created the collection with
+        # different settings (e.g. a different embedding function), which makes
+        # ``get_or_create_collection`` raise "Collection already exists". Recover
+        # by retrieving the existing collection, or by recreating a clean one.
+        self.situation_collection = None
+        try:
+            self.situation_collection = self.chroma_client.get_or_create_collection(
+                name=name,
+                embedding_function=cast(Any, self.embedding_fn),
+            )
+        except Exception:
+            try:
+                self.situation_collection = self.chroma_client.get_collection(
+                    name=name,
+                    embedding_function=cast(Any, self.embedding_fn),
+                )
+            except Exception:
+                # Last resort: drop and recreate so the rest of the workflow
+                # can proceed even if the persisted metadata is incompatible.
+                with contextlib.suppress(Exception):
+                    self.chroma_client.delete_collection(name=name)
+                self.situation_collection = self.chroma_client.get_or_create_collection(
+                    name=name,
+                    embedding_function=cast(Any, self.embedding_fn),
+                )
+
+        # At this point we've attempted to create or retrieve the collection —
+        # ensure it's available for the rest of the instance methods.
+        assert self.situation_collection is not None
 
     def add_situations(self, situations_and_advice):
-        """Add financial situations and their corresponding advice. Parameter is a list of tuples (situation, rec)"""
-
         situations = []
         advice = []
         ids = []
-        embeddings = []
 
         offset = self.situation_collection.count()
 
@@ -68,21 +93,16 @@ class FinancialSituationMemory:
             situations.append(situation)
             advice.append(recommendation)
             ids.append(str(offset + i))
-            embeddings.append(self.get_embedding(situation))
 
         self.situation_collection.add(
             documents=situations,
             metadatas=[{"recommendation": rec} for rec in advice],
-            embeddings=embeddings,
             ids=ids,
         )
 
     def get_memories(self, current_situation, n_matches=1):
-        """Find matching recommendations using OpenAI embeddings"""
-        query_embedding = self.get_embedding(current_situation)
-
         results = self.situation_collection.query(
-            query_embeddings=[query_embedding],
+            query_texts=[current_situation],
             n_results=n_matches,
             include=["metadatas", "documents", "distances"],
         )
@@ -101,10 +121,8 @@ class FinancialSituationMemory:
 
 
 if __name__ == "__main__":
-    # Example usage
-    matcher = FinancialSituationMemory()
+    matcher = FinancialSituationMemory("test", config={})
 
-    # Example data
     example_data = [
         (
             "High inflation rate with rising interest rates and declining consumer spending",
@@ -124,10 +142,8 @@ if __name__ == "__main__":
         ),
     ]
 
-    # Add the example situations and recommendations
     matcher.add_situations(example_data)
 
-    # Example query
     current_situation = """
     Market showing increased volatility in tech sector, with institutional investors
     reducing positions and rising interest rates affecting growth stock valuations
